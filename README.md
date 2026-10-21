@@ -1,45 +1,55 @@
-# 📉 Telco Customer Churn Analysis & Prediction
+# Telco Customer Churn Analysis and Prediction
 
-**EDA + classification modeling on 7,043 telecom customers — identifying the strongest, most actionable churn drivers and building a genuinely useful predictive model**
+**Exploratory analysis and classification modelling on 7,043 telecom customers, to understand what drives churn and whether it can be predicted**
 
 > Interactive dashboard: [dashboard/churn_dashboard.html](dashboard/churn_dashboard.html)
+
+## In short
+
+- **What:** I looked at why customers leave a telecom provider and built a model to identify customers who are likely to leave.
+- **Data:** 7,043 customers with 21 fields each (IBM Telco Customer Churn dataset).
+- **Tools:** Python (pandas, scikit-learn), Plotly.
+- **Main findings:**
+  - Customers on month-to-month contracts churn at 42.7%, compared with 2.8% on two-year contracts.
+  - Customers with fibre optic internet or who pay by electronic check are the most likely to leave.
+  - The model identifies 4 out of 5 customers who actually leave, with a ROC-AUC of 0.845 (where 0.5 is guessing and 1.0 is perfect).
 
 ---
 
 ## Problem
 
-A telecom provider has a 26.5% customer churn rate. Which customers are leaving, why, and can churn be predicted early enough to intervene?
+A telecom provider is losing 26.5% of its customers. Which customers are leaving, why, and can churn be predicted early enough for the business to do something about it?
 
 **Research questions:**
-- Which contract terms, services, and payment methods are associated with churn?
-- Do newer or higher-paying customers churn more?
-- Can churn be predicted reliably enough to be operationally useful — and unlike a similarly-shaped problem in my [coffee sales project](https://github.com/Valerie-komen/Coffee-Sales-Analytics-ML) (where the data didn't support a useful classifier), does this dataset actually have the class balance and signal to support one?
+- Which contract terms, services, and payment methods are linked to churn?
+- Do newer customers or customers who pay more churn more often?
+- Can churn be predicted well enough to be useful in practice? In my [coffee sales project](https://github.com/Valerie-komen/Coffee-Sales-Analytics-ML), a similar prediction problem did not work because the data was too limited, so I wanted to check whether this dataset has enough balance and information to support a model.
 
 ---
 
 ## Dataset
 
-Source: IBM's Telco Customer Churn dataset — 7,043 customers, 21 fields (demographics, contract/account details, subscribed services, charges, churn status).
+Source: IBM's Telco Customer Churn dataset. It has 7,043 customers and 21 fields covering demographics, contract and account details, subscribed services, charges, and churn status.
 
 ---
 
 ## Methods
 
-| Layer | What it does | Files |
+| Step | What I did | Files |
 |---|---|---|
-| **Cleaning** | Fix `TotalCharges` (blank for 11 zero-tenure customers, not corrupted — filled with 0, not dropped), collapse redundant categorical labels | [`notebooks/01_data_cleaning.ipynb`](notebooks/01_data_cleaning.ipynb) |
-| **EDA** | Churn rate by contract/service/payment method, tenure and spend patterns, correlation analysis | [`notebooks/02_exploratory_analysis.ipynb`](notebooks/02_exploratory_analysis.ipynb) |
-| **ML** | 3 classifiers (Logistic Regression, Random Forest, Gradient Boosting) predicting churn | [`notebooks/03_machine_learning.ipynb`](notebooks/03_machine_learning.ipynb) |
-| **Dashboard** | Self-contained interactive HTML dashboard | [`dashboard/churn_dashboard.html`](dashboard/churn_dashboard.html) |
+| **Cleaning** | Fixed `TotalCharges`, which was blank for 11 customers with zero tenure. These were new customers, not errors, so I filled them with 0 instead of dropping them. I also merged repeated category labels | [`notebooks/01_data_cleaning.ipynb`](notebooks/01_data_cleaning.ipynb) |
+| **Exploratory analysis** | Churn rate by contract, service, and payment method, tenure and spending patterns, and correlations | [`notebooks/02_exploratory_analysis.ipynb`](notebooks/02_exploratory_analysis.ipynb) |
+| **Machine learning** | Trained 3 classifiers (Logistic Regression, Random Forest, Gradient Boosting) to predict churn | [`notebooks/03_machine_learning.ipynb`](notebooks/03_machine_learning.ipynb) |
+| **Dashboard** | An interactive HTML dashboard | [`dashboard/churn_dashboard.html`](dashboard/churn_dashboard.html) |
 
 ---
 
 ## Results
 
-- **Contract length is the single strongest churn driver**: month-to-month customers churn at 42.7%, vs. 11.3% for one-year and just 2.8% for two-year contracts — a 15x spread.
-- **Fiber optic internet customers churn at 41.9% vs. 19.0% for DSL.**
-- **Electronic check payers churn at 45.3%**, more than double every other payment method.
-- **Churners have less than half the tenure of retained customers** (18.0 vs. 37.6 months) and pay more per month on average ($74.44 vs. $61.27).
+- **Contract length is the strongest driver of churn.** Customers on month-to-month contracts churn at 42.7%, compared with 11.3% for one-year contracts and 2.8% for two-year contracts.
+- **Customers with fibre optic internet churn at 41.9%, compared with 19.0% for DSL.**
+- **Customers who pay by electronic check churn at 45.3%**, more than double any other payment method.
+- **Customers who left had been with the company for less than half as long as those who stayed** (18.0 months compared with 37.6 months), and they paid more per month on average ($74.44 compared with $61.27).
 
 ![Churn Dashboard](images/dashboard.png)
 
@@ -47,7 +57,7 @@ Source: IBM's Telco Customer Churn dataset — 7,043 customers, 21 fields (demog
 
 ## Machine Learning
 
-Unlike the repeat-purchase classification in my coffee sales project — where only 2.7% of customers were positive examples and no model beat a naive baseline — this dataset's 26.5% churn rate is balanced enough to support a genuinely useful classifier, tested honestly rather than assumed.
+In my coffee sales project, only 2.7% of customers were repeat buyers, and no model performed better than simply predicting "no" for everyone. Here, 26.5% of customers churned, which gives the models much more to learn from. I tested this rather than assuming it would work.
 
 | Model | Test Accuracy | Precision (Churn) | Recall (Churn) | CV ROC-AUC (5-fold) |
 |---|---|---|---|---|
@@ -55,7 +65,9 @@ Unlike the repeat-purchase classification in my coffee sales project — where o
 | Random Forest | 0.766 | 0.54 | — | 0.844 (±0.011) |
 | Gradient Boosting | 0.796 | 0.65 | — | 0.840 (±0.010) |
 
-Logistic Regression has the best cross-validated ROC-AUC and, unlike the tree models, gives directly interpretable coefficients — confirming the EDA findings quantitatively: two-year and one-year contracts are the strongest churn-*reducing* features; fiber optic internet and electronic check payment are among the strongest churn-*increasing* ones. At 80% recall on the churn class, the model catches 4 out of 5 customers who will actually leave — a reasonable trade-off for a retention-targeting use case, where the cost of a missed churner usually exceeds the cost of a false-positive retention offer.
+Logistic Regression had the best cross-validated ROC-AUC. It is also easier to interpret than the tree models, because each feature has a coefficient that shows whether it increases or reduces churn. The coefficients agree with the exploratory analysis: one-year and two-year contracts reduce churn the most, while fibre optic internet and electronic check payment are among the features that increase it most.
+
+The model has a recall of 80% for churn, which means it identifies 4 out of 5 customers who actually leave. For a retention campaign, this is a reasonable trade-off, because missing a customer who is about to leave usually costs more than sending a retention offer to someone who would have stayed.
 
 ![Feature Importance](images/feature_importance.png)
 ![ROC Curve](images/roc_curve.png)
@@ -73,11 +85,11 @@ pip install -r requirements.txt
 ## Reproducibility
 
 1. **Data cleaning:** [`notebooks/01_data_cleaning.ipynb`](notebooks/01_data_cleaning.ipynb) → `data/cleaned_telco_churn.csv`.
-2. **EDA:** [`notebooks/02_exploratory_analysis.ipynb`](notebooks/02_exploratory_analysis.ipynb).
-3. **ML:** [`notebooks/03_machine_learning.ipynb`](notebooks/03_machine_learning.ipynb).
-4. **Dashboard:** open [`dashboard/churn_dashboard.html`](dashboard/churn_dashboard.html) directly in a browser.
+2. **Exploratory analysis:** [`notebooks/02_exploratory_analysis.ipynb`](notebooks/02_exploratory_analysis.ipynb).
+3. **Machine learning:** [`notebooks/03_machine_learning.ipynb`](notebooks/03_machine_learning.ipynb).
+4. **Dashboard:** open [`dashboard/churn_dashboard.html`](dashboard/churn_dashboard.html) in a browser.
 
-All notebook outputs in this repository are real, executed results.
+All notebook outputs in this repository are from real runs of the code.
 
 ---
 
@@ -103,10 +115,10 @@ Telco-Customer-Churn-Analysis/
 
 ## Limitations
 
-- This is a well-known public benchmark dataset (IBM Telco Customer Churn), not proprietary business data — findings are directionally useful for demonstrating method, not literal business recommendations for any specific company.
-- No data on customer support interactions, competitor pricing, or service-quality incidents, all of which likely matter for *why* fiber optic and electronic-check customers churn more, beyond what this dataset can explain.
-- The model is trained on a single historical snapshot — a real deployment would need to monitor for drift as contract mix, pricing, and competitive pressure change over time.
+- This is a well-known public dataset (IBM Telco Customer Churn), not data from a real company. The findings are useful for showing the method, but they are not recommendations for any specific business.
+- There is no data on customer support interactions, competitor pricing, or service quality. These probably explain *why* fibre optic and electronic check customers churn more, which this dataset cannot answer.
+- The model is trained on a single point in time. If it were used in practice, it would need to be monitored and updated as contracts, pricing, and competition change.
 
 ---
 
-*Questions or feedback? Feel free to open an issue or connect with me on LinkedIn.*
+*If you have questions or feedback, feel free to open an issue or connect with me on [LinkedIn](https://www.linkedin.com/in/valerie-komen-468a93355/).*
